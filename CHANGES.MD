@@ -12,3 +12,9 @@
 - Added validation in the controllers, so only the authenticated user can change their own credentials, modify
 only poll events that they're part of, only modify events that they created.
 - Created a check for open slots and validation for overlapping events. 
+
+[0.3] - MCP server setup, tool creation and other updates
+- Added a new endpoint where you can query a user by id.
+- Set up the MCP server using stdio for transport.
+- Created some auth tools to use with the MCP for user management - registration, login and update.
+

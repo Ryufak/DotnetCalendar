@@ -1,11 +1,17 @@
 using CalendarApi.Data;
 using CalendarApi.Services;
+using CalendarApi.Tools;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Reflection;
-
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+using Microsoft.Extensions.Http;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +25,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
-    {
+{
         opt.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -37,8 +43,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSwaggerGen(c =>
-{
+builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new() { Title = "Calendar API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -65,14 +70,18 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddSwaggerGen(c =>
-{
+builder.Services.AddSwaggerGen(c => {
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
 });
 builder.Services.AddScoped<AvailabilityService>();
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CalendarApi.Tools.UserManagementTools>();
+builder.Services
+    .AddMcpServer()
+    .WithStdioServerTransport()
+    .WithToolsFromAssembly(typeof(UserManagementTools).Assembly);
 
 
 var app = builder.Build();
@@ -96,3 +105,10 @@ app.UseAuthorization();
 
 app.Run();
 
+
+[McpServerToolType]
+public static class EchoTool
+{
+    [McpServerTool, Description("Echoes the message back to the client.")]
+    public static string Echo(string message) => $"hello {message}";
+}

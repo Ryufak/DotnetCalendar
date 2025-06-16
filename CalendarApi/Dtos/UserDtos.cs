@@ -35,4 +35,14 @@ namespace CalendarApi.Dtos
 
         public string? Password { get; set; }
     }
+
+    /// <summary>
+    /// DTO for returning user information (ID, username, email).
+    /// </summary>
+    public class UserDto
+    {
+        public int Id { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+    }
 }

@@ -1,0 +1,14 @@
+{
+    "servers": {
+        "custom-stdio-mcp": {
+            "type": "stdio",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "D:/VS_Projects/AI_CALENDAR/CalendarApi/CalendarApi.csproj"
+            ]
+        }
+    }
+}
+

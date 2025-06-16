@@ -118,13 +118,37 @@ namespace CalendarApi.Controllers
         }
 
         /// <summary>
+        /// Gets a user by their ID. Requires authentication.
+        /// </summary>
+        /// <returns>User details (ID, username, email).</returns>
+        /// <response code="200">Returns the user details.</response>
+        /// <response code="401">Unauthorized if not authenticated.</response>
+        /// <response code="404">User not found.</response>
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound("User not found.");
+
+            return Ok(new
+            {
+                user.Id,
+                user.Username,
+                user.Email
+            });
+        }
+
+
+        /// <summary>
         /// Gets all users. Only available in development environment.
         /// </summary>
         /// <returns>List of users.</returns>
         /// <response code="200">Returns the list of users.</response>
         /// <response code="401">If not in development environment.</response>
         [HttpGet("users")]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
             if (!_env.IsDevelopment())
                 return Unauthorized("This endpoint is only available in development.");
