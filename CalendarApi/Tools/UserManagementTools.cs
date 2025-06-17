@@ -33,17 +33,20 @@ namespace CalendarApi.Tools
         {
             using var httpClient = new HttpClient();
             var apiUrl = $"{_baseUrl}/auth/register";
-            var response = await httpClient.PostAsJsonAsync(apiUrl, dto);
+            var options = new System.Text.Json.JsonSerializerOptions();
+            options.Converters.Add(new CalendarApi.Converters.DateTimeWithZConverter());
+            var json = System.Text.Json.JsonSerializer.Serialize(dto, options);
+            var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync(apiUrl, content);
+            var responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
                 return "User registered via API";
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(error))
-                    error = "<empty response body>";
-                throw new InvalidOperationException($"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {error}");
+                var message = $"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {responseBody}";
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -52,18 +55,20 @@ namespace CalendarApi.Tools
         {
             using var httpClient = new HttpClient();
             var apiUrl = $"{_baseUrl}/auth/login";
-            var response = await httpClient.PostAsJsonAsync(apiUrl, dto);
+            var options = new System.Text.Json.JsonSerializerOptions();
+            options.Converters.Add(new CalendarApi.Converters.DateTimeWithZConverter());
+            var json = System.Text.Json.JsonSerializer.Serialize(dto, options);
+            var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync(apiUrl, content);
+            var responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
-                var token = await response.Content.ReadAsStringAsync();
-                return $"User logged in via API. Token: {token}";
+                return $"User logged in via API. Token: {responseBody}";
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(error))
-                    error = "<empty response body>";
-                throw new InvalidOperationException($"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {error}");
+                var message = $"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {responseBody}";
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -73,17 +78,20 @@ namespace CalendarApi.Tools
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
             var apiUrl = $"{_baseUrl}/auth/update";
-            var response = await httpClient.PutAsJsonAsync(apiUrl, dto);
+            var options = new System.Text.Json.JsonSerializerOptions();
+            options.Converters.Add(new CalendarApi.Converters.DateTimeWithZConverter());
+            var json = System.Text.Json.JsonSerializer.Serialize(dto, options);
+            var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var response = await httpClient.PutAsync(apiUrl, content);
+            var responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
                 return "User updated via API";
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(error))
-                    error = "<empty response body>";
-                throw new InvalidOperationException($"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {error}");
+                var message = $"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {responseBody}";
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -94,16 +102,15 @@ namespace CalendarApi.Tools
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
             var apiUrl = $"{_baseUrl}/auth/delete";
             var response = await httpClient.DeleteAsync(apiUrl);
+            var responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
                 return "User deleted via API";
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(error))
-                    error = "<empty response body>";
-                throw new InvalidOperationException($"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {error}");
+                var message = $"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {responseBody}";
+                throw new InvalidOperationException(message);
             }
         }
 
@@ -118,19 +125,17 @@ namespace CalendarApi.Tools
             if (!GetAllUsers && (!id.HasValue || id <= 0))
                 throw new ArgumentException("Must provide a valid user ID when not fetching all users.");
 
-            var apiUrl = GetAllUsers ? $"{_baseUrl}/users" : $"{_baseUrl}/auth/{id}";
+            var apiUrl = GetAllUsers ? $"{_baseUrl}/auth/users" : $"{_baseUrl}/auth/{id}";
             var response = await httpClient.GetAsync(apiUrl);
+            var responseBody = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
-                var users = await response.Content.ReadAsStringAsync();
-                return $"Fetched users via API: {users}";
+                return $"Fetched users via API: {responseBody}";
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(error))
-                    error = "<empty response body>";
-                throw new InvalidOperationException($"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {error}");
+                var message = $"API error: {(int)response.StatusCode} {response.ReasonPhrase} - {responseBody}";
+                throw new InvalidOperationException(message);
             }
         }
     }

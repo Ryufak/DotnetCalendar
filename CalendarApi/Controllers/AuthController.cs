@@ -103,24 +103,31 @@ namespace CalendarApi.Controllers
             if (user == null)
                 return NotFound("User not found.");
 
-            // Check for username or email conflicts (if desired)
-            if (user.Username != dto.Username && _context.Users.Any(u => u.Username == dto.Username))
-                return BadRequest("Username already taken.");
-            if (user.Email != dto.Email && _context.Users.Any(u => u.Email == dto.Email))
-                return BadRequest("Email already taken.");
+            if (dto.Username == null && dto.Email == null && dto.Password == null && dto.FirstName == null && dto.LastName == null)
+                return BadRequest("At least one field must be provided to update.");
 
-            user.Username = dto.Username;
-            user.Email = dto.Email;
-            user.FirstName = dto.FirstName;
-            user.LastName = dto.LastName;
-
+            if (dto.Username != null)
+            {
+                if (user.Username != dto.Username && _context.Users.Any(u => u.Username == dto.Username))
+                    return BadRequest("Username already taken.");
+                user.Username = dto.Username;
+            }
+            if (dto.Email != null)
+            {
+                if (user.Email != dto.Email && _context.Users.Any(u => u.Email == dto.Email))
+                    return BadRequest("Email already taken.");
+                user.Email = dto.Email;
+            }
+            if (dto.FirstName != null)
+                user.FirstName = dto.FirstName;
+            if (dto.LastName != null)
+                user.LastName = dto.LastName;
             if (!string.IsNullOrEmpty(dto.Password))
             {
                 using var hmac = new HMACSHA512();
                 user.PasswordSalt = hmac.Key;
                 user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
             }
-
             await _context.SaveChangesAsync();
             return Ok("User updated successfully.");
         }
@@ -197,5 +204,7 @@ namespace CalendarApi.Controllers
             });
             return Ok(userDtos);
         }
+
+        
     }
 }

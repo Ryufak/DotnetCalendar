@@ -28,13 +28,8 @@ namespace CalendarApi.Dtos
     /// </summary>
     public class UpdateUserDto
     {
-        [Required]
-        public string Username { get; set; } = default!;
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = default!;
-
+        public string? Username { get; set; }
+        public string? Email { get; set; }
         public string? Password { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
@@ -50,5 +45,19 @@ namespace CalendarApi.Dtos
         public string Email { get; set; } = string.Empty;
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for listing a user's events (for ParticipantsController).
+    /// </summary>
+    public class UserEventListDto
+    {
+        public int EventId { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public bool IsOngoing { get; set; }
+        public bool IsPast { get; set; }
     }
 }

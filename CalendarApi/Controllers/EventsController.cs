@@ -49,7 +49,7 @@ namespace CalendarApi.Controllers
         /// <response code="401">Unauthorized - user not authenticated.</response>
         /// <response code="409">Conflict - participant has overlapping events.</response>
         [Authorize]
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateEvent(CreateEventDto dto)
         {
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -117,7 +117,7 @@ namespace CalendarApi.Controllers
         /// <returns>List of all events with participants.</returns>
         /// <response code="200">Returns the list of events.</response>
         /// <response code="401">If not in development environment.</response>
-        [HttpGet("events")]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetEvents()
         {
             if (!_env.IsDevelopment())
@@ -151,11 +151,17 @@ namespace CalendarApi.Controllers
         /// <param name="id">The event ID.</param>
         /// <returns>The event details.</returns>
         /// <response code="200">Returns the event.</response>
+        /// <response code="401">Unauthorized if user is not authenticated.</response>
+        /// <response code="403">Forbidden if user is not a participant in the event.</response>
         /// <response code="404">Event not found.</response>
         [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEvent(int id)
         {
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdValue) || !int.TryParse(userIdValue, out var userId))
+                return Unauthorized("User ID not found or invalid in token");
+
             var calendarEvent = await _context.Events
                 .Include(e => e.Participants)
                 .ThenInclude(p => p.User)
@@ -163,6 +169,9 @@ namespace CalendarApi.Controllers
 
             if (calendarEvent == null)
                 return NotFound();
+
+            if (!calendarEvent.Participants.Any(p => p.UserId == userId))
+                return StatusCode(403, "You are not a participant in this event.");
 
             var resultDto = new CalendarEventDto
             {
@@ -196,9 +205,14 @@ namespace CalendarApi.Controllers
             if (from.HasValue && to.HasValue && from > to)
                 return BadRequest("Start date must be earlier than end date.");
 
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdValue) || !int.TryParse(userIdValue, out var userId))
+                return Unauthorized("User ID not found or invalid in token");
+
             var query = _context.Events
                 .Include(e => e.Participants)
                     .ThenInclude(p => p.User)
+                .Where(e => e.Participants.Any(p => p.UserId == userId) || e.CreatedById == userId)
                 .AsQueryable();
 
             if (from.HasValue)
@@ -238,7 +252,7 @@ namespace CalendarApi.Controllers
         /// <response code="404">Event not found.</response>
         /// <response code="409">Overlapping event for a participant.</response>
         [Authorize]
-        [HttpPut("{id}")]
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateEvent(int id, UpdateEventDto dto)
         {
             // var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -300,7 +314,7 @@ namespace CalendarApi.Controllers
         /// <response code="401">Unauthorized or not the creator.</response>
         /// <response code="404">Event not found.</response>
         [Authorize]
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);

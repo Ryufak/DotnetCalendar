@@ -23,9 +23,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(opt =>
-{
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opt => {
         opt.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -108,6 +106,13 @@ builder.Services
 
 
 var app = builder.Build();
+
+// Create initial database and seed data
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    CalendarApi.Data.DbSeeder.Seed(db);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

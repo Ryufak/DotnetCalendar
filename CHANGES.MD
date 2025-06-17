@@ -29,3 +29,11 @@ only poll events that they're part of, only modify events that they created.
 - Updated the controllers to have versioning (v2).
 - Added a configurable base url for the API.
 
+[0.5] - Tool and controller updates, setup for testing
+- Updated the tools to pass more context to the LLM.
+- Controller bugfixes and url updates.
+- Tool bugfixes.
+- Updated the user and participants dtos.
+- Updated the datetime converter and included it in the mcp tools.
+- Added an endpoint to check what events the logged in user is part of.
+- Updated event queries to return events ordered by start date. 
