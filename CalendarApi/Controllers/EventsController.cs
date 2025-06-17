@@ -12,7 +12,7 @@ namespace CalendarApi.Controllers
     /// Controller for managing calendar events and related operations.
     /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v2/[controller]")]
     public class EventsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

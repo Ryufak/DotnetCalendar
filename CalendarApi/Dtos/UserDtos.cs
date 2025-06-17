@@ -10,6 +10,8 @@ namespace CalendarApi.Dtos
         public string Username { get; set; } = "";
         public string Email { get; set; } = "";
         public string Password { get; set; } = "";
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
     }
 
     /// <summary>
@@ -34,6 +36,8 @@ namespace CalendarApi.Dtos
         public string Email { get; set; } = default!;
 
         public string? Password { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
     }
 
     /// <summary>
@@ -44,5 +48,7 @@ namespace CalendarApi.Dtos
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
     }
 }

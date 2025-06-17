@@ -18,3 +18,14 @@ only poll events that they're part of, only modify events that they created.
 - Set up the MCP server using stdio for transport.
 - Created some auth tools to use with the MCP for user management - registration, login and update.
 
+[0.4] - Updates to MCP setup and other small things
+- Separated the main api and the mcp one, so they can run at the same time.
+- Added validation for uniqueness for username and email. (not sure how I missed that one).
+- Added a Delete endpoint to auth.
+- Added more auth tools for MCP - get user and delete.
+- Added event management tools for MCP - crud + find free slots.
+- Added participant management tools for MCP.
+- Added some instructions to the README.
+- Updated the controllers to have versioning (v2).
+- Added a configurable base url for the API.
+

@@ -16,7 +16,7 @@ namespace CalendarApi.Controllers
     /// Controller for authentication and user management.
     /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v2/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -36,12 +36,16 @@ namespace CalendarApi.Controllers
         /// <param name="dto">The registration data.</param>
         /// <returns>Status of the registration.</returns>
         /// <response code="200">User registered successfully.</response>
-        /// <response code="400">User already exists.</response>
+        /// <response code="400">User already exists (Email and/or Username).</response>
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterUserDto dto)
         {
+
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-                return BadRequest("User already exists");
+                return BadRequest("Email already exists");
+
+            if (await _context.Users.AnyAsync(u => u.Username == dto.Username))
+                return BadRequest("Username already exists");
 
             _authService.CreatePasswordHash(dto.Password, out var hash, out var salt);
 
@@ -50,7 +54,9 @@ namespace CalendarApi.Controllers
                 Username = dto.Username,
                 Email = dto.Email,
                 PasswordHash = hash,
-                PasswordSalt = salt
+                PasswordSalt = salt,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName
             };
 
             _context.Users.Add(user);
@@ -89,7 +95,7 @@ namespace CalendarApi.Controllers
         /// <response code="400">Username or email already taken.</response>
         /// <response code="404">User not found.</response>
         [Authorize]
-        [HttpPut]
+        [HttpPut("update")]
         public async Task<IActionResult> UpdateUser(UpdateUserDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -105,6 +111,8 @@ namespace CalendarApi.Controllers
 
             user.Username = dto.Username;
             user.Email = dto.Email;
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
 
             if (!string.IsNullOrEmpty(dto.Password))
             {
@@ -116,6 +124,29 @@ namespace CalendarApi.Controllers
             await _context.SaveChangesAsync();
             return Ok("User updated successfully.");
         }
+
+        /// <summary>
+        /// Deletes the current user. Requires authentication.
+        /// </summary>
+        /// <returns>Status of the deletion.</returns>
+        /// <response code="200">User deleted successfully.</response>
+        /// <response code="401">Unauthorized if not authenticated.</response>
+        /// <response code="404">User not found.</response>
+        [Authorize]
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteUser()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound("User not found.");
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return Ok("User deleted successfully.");
+        }
+
+
 
         /// <summary>
         /// Gets a user by their ID. Requires authentication.
@@ -132,11 +163,13 @@ namespace CalendarApi.Controllers
             if (user == null)
                 return NotFound("User not found.");
 
-            return Ok(new
+            return Ok(new UserDto
             {
-                user.Id,
-                user.Username,
-                user.Email
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName
             });
         }
 
@@ -154,7 +187,15 @@ namespace CalendarApi.Controllers
                 return Unauthorized("This endpoint is only available in development.");
 
             var users = await _context.Users.ToListAsync();
-            return Ok(users);
+            var userDtos = users.Select(user => new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            });
+            return Ok(userDtos);
         }
     }
 }

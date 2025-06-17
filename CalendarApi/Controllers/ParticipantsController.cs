@@ -12,7 +12,7 @@ namespace CalendarApi.Controllers
     /// Controller for managing participants of calendar events.
     /// </summary>
     [ApiController]
-    [Route("api/events/{eventId}/[controller]")]
+    [Route("api/v2/events/{eventId}/[controller]")]
     [Authorize]
     public class ParticipantsController : ControllerBase
     {

@@ -41,6 +41,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
+// Configure JSON options to use ISO 8601 with milliseconds and 'Z' (UTC)
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    options.JsonSerializerOptions.Converters.Add(new CalendarApi.Converters.DateTimeWithZConverter());
+    options.JsonSerializerOptions.WriteIndented = true;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c => {
@@ -77,7 +86,21 @@ builder.Services.AddSwaggerGen(c => {
 });
 builder.Services.AddScoped<AvailabilityService>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<CalendarApi.Tools.UserManagementTools>();
+builder.Services.AddScoped<CalendarApi.Tools.UserManagementTools>(sp =>
+    new UserManagementTools(
+        sp.GetRequiredService<ApplicationDbContext>(),
+        sp.GetRequiredService<IHttpContextAccessor>(),
+        sp.GetRequiredService<IConfiguration>()
+    )
+);
+builder.Services.AddScoped<CalendarApi.Tools.EventManagementTools>(sp =>
+    new EventManagementTools(
+        sp.GetRequiredService<ApplicationDbContext>(),
+        sp.GetRequiredService<IHttpContextAccessor>(),
+        sp.GetRequiredService<IConfiguration>()
+    )
+);
+builder.Services.AddScoped<CalendarApi.Tools.ParticipantManagementTools>();
 builder.Services
     .AddMcpServer()
     .WithStdioServerTransport()
@@ -106,9 +129,3 @@ app.UseAuthorization();
 app.Run();
 
 
-[McpServerToolType]
-public static class EchoTool
-{
-    [McpServerTool, Description("Echoes the message back to the client.")]
-    public static string Echo(string message) => $"hello {message}";
-}
