@@ -37,3 +37,7 @@ only poll events that they're part of, only modify events that they created.
 - Updated the datetime converter and included it in the mcp tools.
 - Added an endpoint to check what events the logged in user is part of.
 - Updated event queries to return events ordered by start date. 
+
+[0.6] - Documentation
+- Generated packages.txt 
+- Finalized the readme file.
